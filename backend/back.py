@@ -10,7 +10,7 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
 if not API_KEY:
-    print(" Warning: No se encontró API_KEY. El endpoint de LLM fallará si no se configura correctamente.")
+    print(" No se encontró API_KEY.")
 
 # Crear instancia de FastAPI
 app = FastAPI(
@@ -46,7 +46,7 @@ async def upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# 💬 Endpoint para realizar consultas
+#  Endpoint para realizar consultas
 @app.post("/query")
 async def query_rag(data: dict):
     try:
