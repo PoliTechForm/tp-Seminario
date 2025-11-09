@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
-const baseURL = "http://localhost:8000";
+// Use VITE_API_URL if provided (recommended), otherwise fallback to the deployed Render domain
+const baseURL = import.meta.env.VITE_API_URL ?? "https://tp-seminario.onrender.com";
 
 export default function RAGDemo() {
   const [file, setFile] = useState(null);
