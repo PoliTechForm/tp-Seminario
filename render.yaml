@@ -5,7 +5,7 @@ services:
     plan: free
     region: oregon  # o southamerica-east1 si está disponible
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn backend.back:app --host 0.0.0.0 --port 10000"
+    startCommand: "uvicorn backend.back:app --reload"
     autoDeploy: true
 
     envVars:
