@@ -3,6 +3,16 @@ import React, { useState } from "react";
 // Use VITE_API_URL if provided (recommended), otherwise fallback to the deployed Render domain
 const baseURL = import.meta.env.VITE_API_URL ?? "https://tp-seminario.onrender.com";
 
+
+function sanitizeText(text) {
+  if (typeof text !== "string") return "";
+  // Eliminar etiquetas HTML, caracteres peligrosos o scripts
+  return text
+    .replace(/<[^>]*>?/gm, "") // quita HTML
+    .replace(/&[a-z]+;/gi, "") // quita entidades HTML
+    .replace(/[^\x20-\x7E\n\r\t]/g, ""); // elimina caracteres no imprimibles
+}
+
 export default function RAGDemo() {
   const [file, setFile] = useState(null);
   const [query, setQuery] = useState("");
@@ -103,10 +113,12 @@ export default function RAGDemo() {
           </div>
         </div>
 
-        <div className="mt-6">
-          <h2 className="text-lg font-medium text-slate-800 mb-2">Respuesta</h2>
-          <pre className="bg-slate-900 text-slate-100 p-4 rounded-md overflow-auto max-h-80 whitespace-pre-wrap">{answer ? JSON.stringify(answer, null, 2) : "(sin respuesta)"}</pre>
-        </div>
+       <div className="bg-slate-900 text-slate-100 p-4 rounded-md overflow-auto max-h-80 whitespace-pre-wrap">
+  {answer
+    ? sanitizeText(answer.text ?? answer.answer ?? JSON.stringify(answer))
+    : "(sin respuesta)"}
+</div>
+
       </div>
     </div>
   );

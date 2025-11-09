@@ -34,3 +34,4 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://tp-seminario.onrender.com   # URL pública del backend
+
