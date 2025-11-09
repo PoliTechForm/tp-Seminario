@@ -78,3 +78,15 @@ async def history():
         return get_history()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Root endpoint and health check to satisfy platforms (Render) that probe '/'
+@app.get("/")
+async def root():
+    """Simple root handler and health check."""
+    return {"status": "ok", "service": "RAG Backend - TechDocs Assistant"}
+
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
