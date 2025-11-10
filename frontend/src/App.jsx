@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 
 // Use VITE_API_URL if provided (recommended), otherwise fallback to the deployed Render domain
-const baseURL = import.meta.env.VITE_API_URL ?? "https://tp-seminario.onrender.com";
-
+const baseURL = "https://tp-seminario.onrender.com";
 
 function sanitizeText(text) {
   if (typeof text !== "string") return "";
@@ -26,7 +25,10 @@ export default function RAGDemo() {
       setUploading(true);
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch(`${baseURL}/upload`, { method: "POST", body: form });
+      const res = await fetch(`${baseURL}/upload`, {
+        method: "POST",
+        body: form,
+      });
       const json = await res.json();
       setAnswer({ status: "uploaded", info: json });
     } catch (err) {
@@ -37,7 +39,8 @@ export default function RAGDemo() {
   };
 
   const Consultar = async () => {
-    if (!query) return setAnswer({ error: "Escribe una pregunta antes de consultar." });
+    if (!query)
+      return setAnswer({ error: "Escribe una pregunta antes de consultar." });
     try {
       setQuerying(true);
       const res = await fetch(`${baseURL}/query`, {
@@ -66,10 +69,14 @@ export default function RAGDemo() {
               className="hidden"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
-            <span className="bg-blue-600 text-white px-3 py-2 rounded-md text-sm cursor-pointer hover:bg-blue-700">Seleccionar archivo</span>
+            <span className="bg-blue-600 text-white px-3 py-2 rounded-md text-sm cursor-pointer hover:bg-blue-700">
+              Seleccionar archivo
+            </span>
           </label>
 
-          <div className="text-sm text-slate-500">{file ? `Archivo: ${file.name}` : "No hay archivo seleccionado"}</div>
+          <div className="text-sm text-slate-500">
+            {file ? `Archivo: ${file.name}` : "No hay archivo seleccionado"}
+          </div>
 
           <div className="flex gap-3">
             <button
@@ -113,14 +120,14 @@ export default function RAGDemo() {
           </div>
         </div>
 
-       <div className="bg-slate-900 text-slate-100 p-4 rounded-md overflow-auto max-h-80 whitespace-pre-wrap">
-  {answer
-    ? sanitizeText(answer.text ?? answer.answer ?? JSON.stringify(answer))
-    : "(sin respuesta)"}
-</div>
-
+        <div className="bg-slate-900 text-slate-100 p-4 rounded-md overflow-auto max-h-80 whitespace-pre-wrap">
+          {answer
+            ? sanitizeText(
+                answer.text ?? answer.answer ?? JSON.stringify(answer)
+              )
+            : "(sin respuesta)"}
+        </div>
       </div>
     </div>
   );
 }
-
