@@ -1,4 +1,3 @@
-# utils.py
 import re
 from typing import List
 from PyPDF2 import PdfReader

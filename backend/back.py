@@ -64,7 +64,6 @@ async def query_rag(data: dict):
 
         response = query_answer(query)
 
-        # 🧼 Sanitizar antes de devolver
         response["answer"] = sanitize_text(response.get("answer", ""))
 
         return response

@@ -4,7 +4,7 @@ import hashlib
 import numpy as np
 from typing import List, Dict
 from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader  # 👈 reemplaza a fitz
+from langchain_community.document_loaders import PyPDFLoader
 
 # --- Cargar API Key ---
 load_dotenv()
@@ -19,7 +19,7 @@ VECTOR_STORE: Dict[str, Dict] = {}
 
 # --- Generar embeddings ---
 def embed_text(text: str) -> List[float]:
-    model = "models/text-embedding-004"  # ✅ modelo correcto
+    model = "models/text-embedding-004"
     result = genai.embed_content(model=model, content=text)
     return result["embedding"]
 
