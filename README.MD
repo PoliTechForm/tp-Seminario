@@ -39,7 +39,6 @@ A continuación se muestra el asistente en funcionamiento, respondiendo una cons
 - **Requisito Cumplido:**
   Cada respuesta del asistente incluye la fuente documental utilizada, por ejemplo:
 
-**_“Según el archivo Guía de Despliegue.md...”_**
 
 ## Stack Tecnológico
 
@@ -47,14 +46,71 @@ A continuación se muestra el asistente en funcionamiento, respondiendo una cons
 
 **Framework RAG:** LangChain
 
-**Base de Datos Vectorial:** ChromaDB (persistente)
+**Base de Datos Vectorial:** Vector-Store
 
-**Modelo de Embeddings:** nomic-embed-text (Ollama)
+**Modelo de Embeddings:** text-embeding-004
 
-**Modelo de Lenguaje (LLM):** Gemini 2.5 Flash (Google Vertex AI)
+**Modelo de Lenguaje (LLM):** Gemini 2.5 Flash 
+(Google Vertex AI)
+**Librerias Princiales** google-generativeai, langchain_community,dotenv, PyPDF2, markdown
 
 **Backend:** FastAPI + Uvicorn
 
-**Frontend:** Streamlit
+**Frontend:** React
 
 **Lenguaje:** Python
+
+## Instalacion 
+
+**1. Clonar el Repositorio:**
+
+```bash 
+git clone https://github.com/PoliTechForm/tp-Seminario.git
+```
+**2.Moverse a la carpeta backend :**
+```bash 
+cd backend
+```
+**3. Crear y activar Entorno virtual:**
+
+```bash 
+python -m venv venv
+```
+```bash 
+# Activar en Windows
+.\venv\Scripts\activate
+
+# Activar en macOS/Linux
+source venv/bin/activate
+```
+**3. Instalar dependencias:**
+```bash
+pip install -r requirements.txt
+```
+**4. Configurar Modelos y Credenciales (Gemini y Ollama):**
+
+* **Google AI (LLM - API Key):** El proyecto utiliza la clave API de Google AI Studio (no de Google Cloud).
+    1.  Crea un archivo llamado **`.env`** en la raíz del proyecto.
+    2.  Añade tu clave al archivo, siguiendo este formato:
+        ```text
+        API_KEY="TU_CLAVE_API_VA_AQUI"
+        ```
+
+
+
+## Ejutar el frontend
+
+**1. En la terminal ejecuta.**
+
+```bash
+cd frontend
+```
+**1. Instalar las dependencias.**
+
+```bash
+npm i 
+```
+**1. Ejecutar el Frontend.**
+```bash
+npm run dev
+```
