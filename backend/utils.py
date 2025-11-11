@@ -9,7 +9,6 @@ def extract_text_from_pdf(path: str) -> str:
     texts = []
     for i, page in enumerate(reader.pages):
         texts.append((i, page.extract_text() or ""))
-    # return list of (page_index, text)
     return "\n".join([t for _, t in texts])
 
 def extract_text_from_md(path: str) -> str:

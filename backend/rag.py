@@ -59,19 +59,22 @@ def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 # --- Buscar fragmentos ---
-def retrieve(query: str, top_k: int = 3):
+def retrieve(query: str, documentId: str, top_k: int = 3):
     query_vec = embed_text(query)
     similarities = []
     for key, data in VECTOR_STORE.items():
+        if data.get("source") != documentId:
+            continue 
         doc_vec = np.array(data["embedding"])
         score = cosine_similarity(query_vec, doc_vec)
         similarities.append((score, data))
     similarities.sort(key=lambda x: x[0], reverse=True)
     return [d for _, d in similarities[:top_k]]
 
+
 # --- Generar respuesta ---
-def query_answer(query: str):
-    context_docs = retrieve(query)
+def query_answer(query: str, documentId: str):
+    context_docs = retrieve(query, documentId, top_k=3)
     context_text = "\n\n".join([doc["text"] for doc in context_docs])
 
     prompt = f"""
@@ -84,6 +87,7 @@ Contexto:
 {context_text}
 
 Responde explicando y citando las secciones o documentos usados.
+Quiero que respondas en maximo 5 lineas de chat, se amigable y conciso con tus respuestas.
 """
 
     model = genai.GenerativeModel("models/gemini-2.5-flash")
