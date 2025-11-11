@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from backend.rag import ingest_file, query_answer, clear_session, get_history
+from rag import ingest_file, query_answer, clear_session, get_history
 import shutil
 
 # --- Sanitizador seguro ---
