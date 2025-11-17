@@ -1,0 +1,12 @@
+[
+  {
+    "type": "user",
+    "text": "hola, de que trata esta tarea?",
+    "timestamp": 1763382250286
+  },
+  {
+    "type": "assistant",
+    "text": "Esta tarea trata sobre el desarrollo de un backend con TypeScript, utilizando Node.js + Express, para la gestión de equipos informáticos.\n\nLos requerimientos incluyen:\n*   Funcionalidades CRUD para operaciones básicas de gestión de equipos informáticos.\n*   Solo usuarios autenticados podrán acceder a endpoints protegidos.\n*   No se podrán registrar datos duplicados (ejemplo: email).\n*   Diseñar y documentar los endpoints restantes, que deben comenzar con el prefijo /api/....\n*   Investigar y decidir cómo organizar las validaciones (middlewares, servicios, controladores, helpers) y cómo manejar las respuestas y errores (códigos de estado HTTP, mensajes personalizados).\n*   La lógica de negocio debe implementarse en una capa de servicios.\n*   Cada alumno deberá definir, según su propia abstracción, las funcionalidades adicionales, propiedades y relaciones que consideren necesarias para un manejo completo y eficiente de los equipos informáticos dentro del sistema.\n*   El objetivo es que cada alumno aplique criterio propio y pueda justificar sus decisiones técnicas.\n\nLa documentación requerida incluye un archivo README.md con instrucciones para ejecutar el proyecto (dependencias, comandos para iniciar el backend, configuración de variables de entorno) y una justificación técnica detallada de las decisiones tomadas respecto a diseño de relaciones entre entidades, organización de carpetas y propiedades relevantes elegidas.",
+    "timestamp": 1763382257553
+  }
+]

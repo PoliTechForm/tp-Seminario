@@ -1,0 +1,32 @@
+[
+  {
+    "type": "user",
+    "text": "hola, de que trata este documento?",
+    "timestamp": 1763382140934
+  },
+  {
+    "type": "assistant",
+    "text": "Este documento trata sobre:\n\n*   **Estructura de los datos**.\n*   **Diseño**: Se refiere al plan final o proposición determinada fruto del proceso de diseñar (dibujo, proyecto, diseño industrial o descripción técnica, maqueta) y al resultado de poner ese plan final en práctica.\n*   **Módulos**: Se refiere a los módulos, codificación y documentación, correspondiéndose con las fases de diseño detallado e implementación. Las propiedades del módulo se presentan como información oficial para autores de módulos o módulos clientes.\n*   **Conceptos clave**:\n    *   **Ocultamiento de la información**.\n    *   **Abstracción**:\n        *   Conformada por la estructura del programa.\n        *   Representa la organización jerárquica de los módulos.\n        *   No presenta detalles procedimentales.\n        *   Se representa con un gráfico donde se representan las entradas y salidas en forma descendente por jerarquía.\n        *   Incluye la **Individualización**, que es el agrupamiento de objetos similares para propósitos comunes, donde un objeto de una clase dada tiene un propósito o rol dado.\n*   Los conceptos mencionados afectan a la **Continuidad, Descomposición, Composición, Comprensión**.",
+    "timestamp": 1763382160910
+  },
+  {
+    "type": "user",
+    "text": "trata sobre software?",
+    "timestamp": 1763382190502
+  },
+  {
+    "type": "assistant",
+    "text": "Ingeniería de Software.",
+    "timestamp": 1763382206177
+  },
+  {
+    "type": "user",
+    "text": "como hago un asado como los argentinos",
+    "timestamp": 1763382365385
+  },
+  {
+    "type": "assistant",
+    "text": "El contexto proporcionado no contiene información sobre cómo hacer un asado argentino.",
+    "timestamp": 1763382371681
+  }
+]

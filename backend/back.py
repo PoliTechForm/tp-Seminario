@@ -1,26 +1,24 @@
-import re
 import os
 import json
+import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from .rag import ingest_file, query_answer, clear_session, get_history
-import shutil
 
-# --- Cargar variables ---
+from .rag import ingest_file, query_answer, clear_session
+
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-if not API_KEY:
-    print(" No se encontró API_KEY.")
 
-# --- Crear app ---
+if not API_KEY:
+    print("[WARN] No se encontró API_KEY en .env")
+
 app = FastAPI(
     title="RAG Backend - TechDocs Assistant",
     version="1.0.0",
     description="Asistente técnico para documentación interna con arquitectura RAG y Gemini 2.5-Flash."
 )
 
-# --- CORS ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,46 +27,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Endpoints ---
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
         os.makedirs("uploads", exist_ok=True)
         file_path = f"uploads/{file.filename}"
-        print(f"Guardando archivo en: {file_path}")
+        print(f"[UPLOAD] Guardando archivo en: {file_path}")
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        try:
-            result = ingest_file(file_path)
-        except Exception as e:
-            print(f"[ERROR INGEST_FILE]: {e}")
-            raise
+        result = ingest_file(file_path)
         return {"status": "ok", "details": result}
     except Exception as e:
         print(f"[UPLOAD ERROR]: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/query")
 async def query_rag(data: dict):
     try:
-        print("DATA RECIBIDA EN /query:", data)   # <--- DEBUG
+        print("DATA RECIBIDA EN /query:", data)
         query = data.get("query")
         doc_id = data.get("documentId")
-        print(f"Consultando: '{query}' para documento: '{doc_id}'")   # <--- DEBUG
         if not query or not doc_id:
             raise HTTPException(status_code=400, detail="Faltan 'query' o 'documentId'")
         response = query_answer(query, doc_id)
         response["answer"] = response.get("answer", "")
         return response
     except Exception as e:
-        print("[ERROR /query]:", repr(e))  # <--- MUY IMPORTANTE
+        print("[ERROR /query]:", repr(e))
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.post("/clear")
 async def clear_rag():
     try:
-        result = clear_session()
-        return result
+        return clear_session()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -109,7 +101,6 @@ async def post_chat(doc_id: str, data: dict):
 @app.get("/")
 async def root():
     return {"status": "ok", "service": "RAG Backend - TechDocs Assistant"}
-
 @app.get("/health")
 async def health():
     return {"status": "healthy"}

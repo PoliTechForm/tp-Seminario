@@ -1,106 +1,99 @@
 import os
-import google.generativeai as genai
-import hashlib
-import numpy as np
-from typing import List, Dict
 from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+import google.generativeai as genai
 
-# --- Cargar API Key ---
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
-
 if not API_KEY:
-    raise ValueError("No se encontró API_KEY en el archivo .env")
-
+    raise ValueError("No se encontró API_KEY")
 genai.configure(api_key=API_KEY)
 
-VECTOR_STORE: Dict[str, Dict] = {}
+embeddings = GoogleGenerativeAIEmbeddings(
+    model="models/text-embedding-004",
+    google_api_key=API_KEY
+)
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    google_api_key=API_KEY,
+    temperature=0.2
+)
 
-# --- Generar embeddings ---
-def embed_text(text: str) -> List[float]:
-    model = "models/text-embedding-004"
-    result = genai.embed_content(model=model, content=text)
-    return result["embedding"]
+vectorstores = {}   
+retrievers = {}       
+document_sources = {} 
 
-# --- Extraer texto de PDF ---
-def extract_text_from_pdf(file_path: str) -> str:
-    loader = PyPDFLoader(file_path)
-    pages = loader.load()
-    text = "\n".join([page.page_content for page in pages])
-    return text
-
-# --- Procesar archivos ---
 def ingest_file(file_path: str):
-    if file_path.endswith(".pdf"):
-        text = extract_text_from_pdf(file_path)
-    elif file_path.endswith(".md"):
-        with open(file_path, "r", encoding="utf-8") as f:
-            text = f.read()
+    ext = file_path.lower()
+    if ext.endswith(".pdf"):
+        loader = PyPDFLoader(file_path)
+    elif ext.endswith(".md"):
+        loader = UnstructuredMarkdownLoader(file_path)
     else:
-        raise ValueError("Formato no soportado. Usa .md o .pdf")
+        raise ValueError("Formato no soportado: usa .pdf o .md")
 
-    chunks = chunk_text(text)
-    for chunk in chunks:
-        vector = embed_text(chunk)
-        key = hashlib.md5(chunk.encode()).hexdigest()
-        VECTOR_STORE[key] = {"text": chunk, "embedding": vector, "source": os.path.basename(file_path)}
+    docs = loader.load()
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=320,
+        chunk_overlap=60
+    )
+    chunks = splitter.split_documents(docs)
+    doc_id = os.path.basename(file_path)
+    document_sources[doc_id] = {
+        "file_path": file_path,
+        "num_chunks": len(chunks)
+    }
+    for c in chunks:
+        c.metadata["source"] = doc_id
 
-    return {"message": f"{len(chunks)} fragmentos procesados de {file_path}"}
+    vectorstore = FAISS.from_documents(chunks, embeddings)
+    retriever = vectorstore.as_retriever(
+        search_type="similarity",
+        search_kwargs={"k": 8}
+    )
+    vectorstores[doc_id] = vectorstore
+    retrievers[doc_id] = retriever
+    return {"status": "ok", "chunks": len(chunks), "doc": doc_id}
 
-# --- Dividir texto ---
-def chunk_text(text: str, max_length: int = 500) -> List[str]:
-    words = text.split()
-    return [" ".join(words[i:i + max_length]) for i in range(0, len(words), max_length)]
+def retrieve_chunks(query: str, documentId: str):
+    retriever = retrievers.get(documentId)
+    if retriever is None:
+        return []
+    docs = retriever.invoke(query)
+    return [d for d in docs if d.metadata.get("source") == documentId][:8]
 
-# --- Calcular similitud ---
-def cosine_similarity(a, b):
-    a, b = np.array(a), np.array(b)
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
-# --- Buscar fragmentos ---
-def retrieve(query: str, documentId: str, top_k: int = 3):
-    query_vec = embed_text(query)
-    similarities = []
-    for key, data in VECTOR_STORE.items():
-        if data.get("source") != documentId:
-            continue 
-        doc_vec = np.array(data["embedding"])
-        score = cosine_similarity(query_vec, doc_vec)
-        similarities.append((score, data))
-    similarities.sort(key=lambda x: x[0], reverse=True)
-    return [d for _, d in similarities[:top_k]]
-
-
-# --- Generar respuesta ---
 def query_answer(query: str, documentId: str):
-    context_docs = retrieve(query, documentId, top_k=3)
-    context_text = "\n\n".join([doc["text"] for doc in context_docs])
-
+    chunks = retrieve_chunks(query, documentId)
+    if not chunks:
+        return {
+            "answer": "No encontré información relacionada a esa pregunta en el documento. Probá reformularla.",
+            "sources": []
+        }
+    context = "\n\n".join([c.page_content for c in chunks])
     prompt = f"""
-Eres un asistente técnico de documentación interna.
-Responde de forma precisa y cita las fuentes relevantes.
-
-Pregunta: {query}
-
+Respondé usando exclusivamente el siguiente contexto... 
 Contexto:
-{context_text}
-
-Responde explicando y citando las secciones o documentos usados.
-Quiero que respondas en maximo 5 lineas de chat, se amigable y conciso con tus respuestas.
+{context}
+Pregunta:
+{query}
 """
+    result = llm.invoke(prompt)
+    sources = list({c.metadata["source"] for c in chunks})
+    return {
+        "answer": result.content,
+        "sources": sources
+    }
 
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
-    response = model.generate_content(prompt)
 
-    sources = list({doc["source"] for doc in context_docs})
-    return {"answer": response.text, "sources": sources}
-
-# --- Limpiar sesión ---
 def clear_session():
-    VECTOR_STORE.clear()
+    global vectorstores, retrievers, document_sources
+    vectorstores = {}
+    retrievers = {}
+    document_sources = {}
     return {"message": "Vector store limpiado"}
 
-# --- Historial ---
 def get_history():
-    return {"docs": list(VECTOR_STORE.keys())}
+    return {"docs": list(document_sources)}
