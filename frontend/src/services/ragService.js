@@ -1,4 +1,4 @@
-const baseURL = "http://127.0.0.1:8000";
+const baseURL = "https://tp-seminario.onrender.com";
 
 export const ragService = {
   async uploadFile(file) {
@@ -53,7 +53,7 @@ export const ragService = {
   async postChat(docId, message) {
     await fetch(`${baseURL}/chat/${docId}`, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
     });
   }
