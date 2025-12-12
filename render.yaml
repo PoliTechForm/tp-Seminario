@@ -3,35 +3,19 @@ services:
     name: tp-backend
     env: python
     plan: free
-    region: oregon  # o southamerica-east1 si está disponible
+    region: oregon
     buildCommand: "pip install -r requirements.txt"
     startCommand: "uvicorn backend.back:app --host 0.0.0.0 --port $PORT"
-    autoDeploy: true
 
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11
+        value: 3.12
       - key: ENV
         value: production
       - key: API_KEY
-        sync: false  # puedes agregarla manualmente en el panel de Render
+        sync: false
 
     disk:
       name: uploads
       mountPath: /opt/render/project/src/backend/uploads
       sizeGB: 1
-
-  - type: web
-    name: tp-frontend
-    env: node
-    plan: free
-    region: oregon
-    rootDir: frontend              # carpeta donde está tu código React
-    buildCommand: npm run build
-    startCommand: npx serve -s dist
-    autoDeploy: true
-
-    envVars:
-      - key: VITE_API_URL
-        value: https://tp-seminario.onrender.com   # URL pública del backend
-
