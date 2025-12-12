@@ -5,7 +5,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from .rag import ingest_file, query_answer, clear_session
+from rag import ingest_file, query_answer, clear_session
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")

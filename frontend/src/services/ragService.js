@@ -1,4 +1,4 @@
-const baseURL = "https://tp-seminario.onrender.com";
+const baseURL = "https://tp-seminario-18.onrender.com";
 
 export const ragService = {
   async uploadFile(file) {
