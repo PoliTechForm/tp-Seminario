@@ -7,6 +7,7 @@ vectorstores = {}
 retrievers = {}
 document_sources = {}
 
+
 def get_llm_and_embeddings():
     from langchain_google_genai import (
         GoogleGenerativeAIEmbeddings,
@@ -16,7 +17,7 @@ def get_llm_and_embeddings():
 
     API_KEY = os.getenv("API_KEY")
     if not API_KEY:
-        raise RuntimeError("API_KEY no configurada")
+        raise RuntimeError("API_KEY no configurada en Render")
 
     genai.configure(api_key=API_KEY)
 
@@ -34,17 +35,26 @@ def get_llm_and_embeddings():
     return llm, embeddings
 
 
+# ---------- INGEST ----------
 def ingest_file(file_path: str):
-    llm, embeddings = get_llm_and_embeddings()
+    _, embeddings = get_llm_and_embeddings()
 
     loader = PyPDFLoader(file_path)
     docs = loader.load()
+
+    if not docs or all(not d.page_content.strip() for d in docs):
+        raise ValueError(
+            "El PDF no contiene texto legible (posible PDF escaneado)"
+        )
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=320,
         chunk_overlap=60
     )
     chunks = splitter.split_documents(docs)
+
+    if not chunks:
+        raise ValueError("No se pudo dividir el contenido del PDF")
 
     doc_id = os.path.basename(file_path)
     document_sources[doc_id] = {"chunks": len(chunks)}
@@ -58,20 +68,34 @@ def ingest_file(file_path: str):
     vectorstores[doc_id] = vectorstore
     retrievers[doc_id] = retriever
 
-    return {"status": "ok", "chunks": len(chunks)}
+    return {"doc": doc_id, "chunks": len(chunks)}
 
 
+# ---------- QUERY ----------
 def query_answer(query: str, documentId: str):
     llm, _ = get_llm_and_embeddings()
 
     retriever = retrievers.get(documentId)
     if not retriever:
-        return {"answer": "Documento no encontrado", "sources": []}
+        return {
+            "answer": "Documento no encontrado",
+            "sources": []
+        }
 
     docs = retriever.invoke(query)
     context = "\n\n".join(d.page_content for d in docs)
 
-    result = llm.invoke(f"Contexto:\n{context}\n\nPregunta:\n{query}")
+    prompt = f"""
+Respondé usando solo el siguiente contexto.
+
+Contexto:
+{context}
+
+Pregunta:
+{query}
+"""
+
+    result = llm.invoke(prompt)
 
     return {
         "answer": result.content,
@@ -79,6 +103,7 @@ def query_answer(query: str, documentId: str):
     }
 
 
+# ---------- CLEAR ----------
 def clear_session():
     vectorstores.clear()
     retrievers.clear()
