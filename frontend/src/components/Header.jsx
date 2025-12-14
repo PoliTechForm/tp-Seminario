@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 const Header = () => {
   return (
     <header className="
-      fixed top-0 left-0 right-0 h-16 z-[100]
+      fixed top-0 left-0 right-0 h-16 
       bg-white/60 backdrop-blur-xl shadow-md
       flex items-center px-8
       border-b border-slate-200

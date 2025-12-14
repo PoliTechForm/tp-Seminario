@@ -6,7 +6,7 @@ import { FiTrash2 } from "react-icons/fi";
 
 
 
-export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDelete, deletingId }) {
+export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDelete, deletingId, removingIds }) {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -22,7 +22,8 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDel
     const validExtensions = [".pdf", ".md"];
     const isValidFile = validExtensions.some(ext => fileName.endsWith(ext));
     if (!isValidFile) {
-      alert("Solo se permiten archivos PDF o Markdown (.md)");
+      // usar toast en vez de alert
+      try { const { showToast } = await import('../components/ToastProvider').then(m => m); showToast("Solo se permiten archivos PDF o Markdown (.md)", 'error') } catch (e) { alert("Solo se permiten archivos PDF o Markdown (.md)") }
       return;
     }
     setIsLoading(true);
@@ -114,7 +115,7 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDel
               style={{ cursor: 'pointer' }}
             />
             <span
-              className="truncate group-hover:underline flex-1"
+              className={`truncate group-hover:underline flex-1 transition-opacity transition-transform duration-300 ease-out ${removingIds && removingIds.includes(doc.id) ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'}`}
               onClick={() => onSelect(doc.id)}
               style={{ cursor: 'pointer' }}
             >

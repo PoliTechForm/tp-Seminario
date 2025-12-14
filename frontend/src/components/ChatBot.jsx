@@ -5,6 +5,7 @@ import { ragService } from "../services/ragService";
 import { FiSend, FiTrash2 } from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
 import { formatResponse } from "../utils/textUtils";
+import { useToast } from "../components/ToastProvider";
 
 export default function ChatBot() {
   const {
@@ -23,8 +24,10 @@ export default function ChatBot() {
   } = useRAGChat();
 
   const [docs, setDocs] = useState([]);
+  const [removingIds, setRemovingIds] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
   const chatEndRef = useRef(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     ragService.getDocumentList().then((docsData) => {
@@ -61,7 +64,16 @@ export default function ChatBot() {
   const handleDeleteDocument = async (docId) => {
     const ok = window.confirm("¿Confirmas eliminar este documento? Esta acción no se puede deshacer.");
     if (!ok) return;
+    // Optimistic UI with fade: mark removing, wait animation, then remove from list
+    const backup = [...docs];
+    const animationMs = 300;
     setDeletingId(docId);
+    setRemovingIds(prev => [...prev, docId]);
+    let removalTimer = null;
+    // schedule local removal after animation
+    removalTimer = setTimeout(() => {
+      setDocs(prev => prev.filter(d => d.id !== docId));
+    }, animationMs);
     try {
       await ragService.deleteDocument(docId);
       const docList = await ragService.getDocumentList();
@@ -78,9 +90,23 @@ export default function ChatBot() {
       }
     } catch (err) {
       console.error("Error eliminando documento:", err);
-      window.alert(err?.message || "Error al eliminar el documento");
-    }
-    finally {
+      // Restaurar backup por si hubo fallo
+      if (removalTimer) clearTimeout(removalTimer);
+      setDocs(backup);
+      // Si el backend indica que el documento no existe, refrescamos la lista para sincronizar la UI
+      if (err?.message && err.message.toLowerCase().includes("no encontrado")) {
+        const docList = await ragService.getDocumentList();
+        setDocs(docList);
+        if (selectedDocId === docId) {
+          setSelectedDocId(null);
+          setMessages([]);
+        }
+        showToast("El documento no existe en el servidor. La lista se actualizó.", 'error');
+      } else {
+        showToast(err?.message || "Error al eliminar el documento", 'error');
+      }
+    } finally {
+      setRemovingIds(prev => prev.filter(id => id !== docId));
       setDeletingId(null);
     }
   };
