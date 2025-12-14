@@ -45,6 +45,7 @@ export default function ChatBot() {
     setQuery(""); // limpia input al cambiar documento
   };
 
+
   const handleUploadDocument = async (selectedFile) => {
     await uploadFile(selectedFile);
     const docList = await ragService.getDocumentList();
@@ -53,6 +54,23 @@ export default function ChatBot() {
     setSelectedDocId(lastId);
     await handleSelectDoc(lastId);
     setQuery("");
+  };
+
+  // Eliminar documento
+  const handleDeleteDocument = async (docId) => {
+    await ragService.deleteDocument(docId);
+    const docList = await ragService.getDocumentList();
+    setDocs(docList);
+    // Si el documento eliminado era el seleccionado, selecciona otro
+    if (selectedDocId === docId) {
+      if (docList.length > 0) {
+        setSelectedDocId(docList[0].id);
+        await handleSelectDoc(docList[0].id);
+      } else {
+        setSelectedDocId(null);
+        setMessages([]);
+      }
+    }
   };
 
   // UX: bloquea input al enviar, limpia after response
@@ -69,6 +87,7 @@ export default function ChatBot() {
         selectedDocId={selectedDocId}
         onSelect={handleDocumentSelect}
         onUpload={handleUploadDocument}
+        onDelete={handleDeleteDocument}
       />
       <main className="relative flex-1 flex flex-col z-0">
         {/* Subheader */}
@@ -86,9 +105,9 @@ export default function ChatBot() {
             <span className="text-slate-500 text-lg mt-2 border-l-4 border-blue-300 pl-3">
               {selectedDocId
                 ? <>
-                    <span className="font-medium text-blue-500">📑 Contexto:</span>
-                    &nbsp;<b>{docs.find(d => d.id === selectedDocId)?.name || "Sin selección"}</b>
-                  </>
+                  <span className="font-medium text-blue-500">📑 Contexto:</span>
+                  &nbsp;<b>{docs.find(d => d.id === selectedDocId)?.name || "Sin selección"}</b>
+                </>
                 : "Selecciona un documento"}
             </span>
           </div>
@@ -131,10 +150,10 @@ export default function ChatBot() {
               `}>
                 <ReactMarkdown
                   components={{
-                    p: ({node, ...props}) => <p className="text-md" {...props} />,
-                    strong: ({node, ...props}) => <strong className="font-bold text-blue-700" {...props} />,
-                    em: ({node, ...props}) => <em className="italic text-blue-500" {...props} />,
-                    li: ({node, ...props}) => <li className="ml-6 list-disc" {...props} />,
+                    p: ({ node, ...props }) => <p className="text-md" {...props} />,
+                    strong: ({ node, ...props }) => <strong className="font-bold text-blue-700" {...props} />,
+                    em: ({ node, ...props }) => <em className="italic text-blue-500" {...props} />,
+                    li: ({ node, ...props }) => <li className="ml-6 list-disc" {...props} />,
                   }}
                 >
                   {msg.type === "assistant" ? formatResponse(msg.text) : msg.text}

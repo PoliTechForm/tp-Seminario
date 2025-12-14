@@ -1,9 +1,13 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { HiMiniFolder } from "react-icons/hi2";
 import { FiUpload } from "react-icons/fi";
 import { HiDocumentText } from "react-icons/hi";
+import { FiTrash2 } from "react-icons/fi";
 
-export default function Sidebar({ docs, selectedDocId, onSelect, onUpload }) {
+
+
+export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDelete }) {
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleButtonClick = () => {
@@ -11,7 +15,7 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload }) {
     fileInputRef.current.click();
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
     const fileName = selectedFile.name.toLowerCase();
@@ -21,9 +25,22 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload }) {
       alert("Solo se permiten archivos PDF o Markdown (.md)");
       return;
     }
-    onUpload(selectedFile);
+    setIsLoading(true);
+    try {
+      await onUpload(selectedFile);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  const carga = async () => {
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsLoading(false);
+  }
+  const clearHistorial = async () => {
+
+  }
   return (
     <aside
       className="
@@ -48,9 +65,10 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload }) {
               transition active:scale-95
               focus:ring-2 focus:ring-blue-300
             "
+            disabled={isLoading}
           >
-            <FiUpload className="text-2xl" />
-            Selecciona un documento
+            <FiUpload className="text-2xl font-bold " />
+            Selecciona un PDF
           </button>
           <input
             ref={fileInputRef}
@@ -58,13 +76,18 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload }) {
             accept=".pdf,.md"
             className="hidden"
             onChange={handleFileChange}
+            disabled={isLoading}
           />
+          {isLoading && (
+            <span className="flex justify-center text-blue-600 font-semibold mt-2">Cargando...</span>
+          )}
         </div>
       </div>
+
       <div className="flex items-center gap-3 mb-2">
-          <HiMiniFolder className="text-2xl text-blue-700 rounded-full bg-blue-100" />
-          <span className="font-semibold text-lg text-slate-700 tracking-wide">Mis Documentos</span>
-        </div>
+        <HiMiniFolder className="text-2xl text-blue-700 rounded-full bg-blue-100" />
+        <span className="font-semibold text-lg text-slate-700 tracking-wide">Mis Documentos</span>
+      </div>
       <ul className="flex-1 space-y-2 overflow-y-auto custom-scroll">
         {(!docs || docs.length === 0) && (
           <li className="text-slate-400 text-md">Sin documentos</li>
@@ -72,8 +95,6 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload }) {
         {docs.map((doc) => (
           <li
             key={doc.id}
-            onClick={() => onSelect(doc.id)}
-            title={doc.name}
             className={`flex items-center gap-3 group
               cursor-pointer px-4 py-1 rounded-xl
               font-medium
@@ -84,8 +105,26 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload }) {
                 : "hover:bg-slate-100 hover:border-blue-200"}
             `}
           >
-            <HiDocumentText className={`text-2xl ${selectedDocId === doc.id ? "text-white" : "text-blue-700 group-hover:text-blue-800"}`} />
-            <span className="truncate group-hover:underline">{doc.name}</span>
+            <HiDocumentText
+              className={`text-2xl ${selectedDocId === doc.id ? "text-white" : "text-blue-700 group-hover:text-blue-800"}`}
+              onClick={() => onSelect(doc.id)}
+              style={{ cursor: 'pointer' }}
+            />
+            <span
+              className="truncate group-hover:underline flex-1"
+              onClick={() => onSelect(doc.id)}
+              style={{ cursor: 'pointer' }}
+            >
+              {doc.name}
+            </span>
+            <button
+              type="button"
+              className="ml-auto text-red-500 hover:text-red-700 p-1 rounded"
+              title="Eliminar documento"
+              onClick={() => onDelete && onDelete(doc.id)}
+            >
+              <FiTrash2 className="text-lg" />
+            </button>
           </li>
         ))}
       </ul>

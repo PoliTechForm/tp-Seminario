@@ -56,5 +56,16 @@ export const ragService = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
     });
+  },
+
+  // Eliminar documento por id
+  async deleteDocument(docId) {
+    const response = await fetch(`${baseURL}/documents/${docId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      throw new Error(`No se pudo eliminar el documento: ${response.statusText}`);
+    }
+    return await response.json();
   }
 }
