@@ -1,4 +1,4 @@
-const baseURL = import.meta.env.VITE_API_URL || "https://tp-seminario-18.onrender.com";
+const baseURL = "https://tp-seminario-18.onrender.com";
 
 export const ragService = {
   async uploadFile(file) {

@@ -6,7 +6,7 @@ import { FiTrash2 } from "react-icons/fi";
 
 
 
-export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDelete, deletingId, removingIds }) {
+export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDelete }) {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -22,8 +22,7 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDel
     const validExtensions = [".pdf", ".md"];
     const isValidFile = validExtensions.some(ext => fileName.endsWith(ext));
     if (!isValidFile) {
-      // usar toast en vez de alert
-      try { const { showToast } = await import('../components/ToastProvider').then(m => m); showToast("Solo se permiten archivos PDF o Markdown (.md)", 'error') } catch (e) { alert("Solo se permiten archivos PDF o Markdown (.md)") }
+      alert("Solo se permiten archivos PDF o Markdown (.md)");
       return;
     }
     setIsLoading(true);
@@ -115,7 +114,7 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDel
               style={{ cursor: 'pointer' }}
             />
             <span
-              className={`truncate group-hover:underline flex-1 transition-opacity transition-transform duration-300 ease-out ${removingIds && removingIds.includes(doc.id) ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'}`}
+              className="truncate group-hover:underline flex-1"
               onClick={() => onSelect(doc.id)}
               style={{ cursor: 'pointer' }}
             >
@@ -123,19 +122,11 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDel
             </span>
             <button
               type="button"
-              className={`ml-auto p-1 rounded ${deletingId === doc.id ? 'text-gray-400' : 'text-red-500 hover:text-red-700'}`}
-              title={deletingId === doc.id ? 'Eliminando...' : 'Eliminar documento'}
+              className="ml-auto text-red-500 hover:text-red-700 p-1 rounded"
+              title="Eliminar documento"
               onClick={() => onDelete && onDelete(doc.id)}
-              disabled={deletingId === doc.id}
             >
-              {deletingId === doc.id ? (
-                <svg className="animate-spin h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-              ) : (
-                <FiTrash2 className="text-lg" />
-              )}
+              <FiTrash2 className="text-lg" />
             </button>
           </li>
         ))}
