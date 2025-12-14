@@ -60,12 +60,18 @@ export const ragService = {
 
   // Eliminar documento por id
   async deleteDocument(docId) {
-    const response = await fetch(`${baseURL}/documents/${docId}`, {
+    const encoded = encodeURIComponent(docId);
+    const response = await fetch(`${baseURL}/documents/${encoded}`, {
       method: "DELETE",
     });
+    if (response.status === 404) {
+      throw new Error("Documento no encontrado");
+    }
     if (!response.ok) {
-      throw new Error(`No se pudo eliminar el documento: ${response.statusText}`);
+      const text = await response.text().catch(() => response.statusText || "");
+      throw new Error(`No se pudo eliminar el documento: ${text}`);
     }
     return await response.json();
   }
+
 }

@@ -58,18 +58,25 @@ export default function ChatBot() {
 
   // Eliminar documento
   const handleDeleteDocument = async (docId) => {
-    await ragService.deleteDocument(docId);
-    const docList = await ragService.getDocumentList();
-    setDocs(docList);
-    // Si el documento eliminado era el seleccionado, selecciona otro
-    if (selectedDocId === docId) {
-      if (docList.length > 0) {
-        setSelectedDocId(docList[0].id);
-        await handleSelectDoc(docList[0].id);
-      } else {
-        setSelectedDocId(null);
-        setMessages([]);
+    const ok = window.confirm("¿Confirmas eliminar este documento? Esta acción no se puede deshacer.");
+    if (!ok) return;
+    try {
+      await ragService.deleteDocument(docId);
+      const docList = await ragService.getDocumentList();
+      setDocs(docList);
+      // Si el documento eliminado era el seleccionado, selecciona otro
+      if (selectedDocId === docId) {
+        if (docList.length > 0) {
+          setSelectedDocId(docList[0].id);
+          await handleSelectDoc(docList[0].id);
+        } else {
+          setSelectedDocId(null);
+          setMessages([]);
+        }
       }
+    } catch (err) {
+      console.error("Error eliminando documento:", err);
+      window.alert(err?.message || "Error al eliminar el documento");
     }
   };
 

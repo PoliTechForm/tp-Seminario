@@ -67,9 +67,14 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDel
             "
             disabled={isLoading}
           >
+
             <FiUpload className="text-2xl font-bold " />
             Selecciona un PDF
+
           </button>
+          {isLoading && (
+            <span className="flex justify-center text-blue-600 font-semibold mt-2">Cargando...</span>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -78,9 +83,7 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDel
             onChange={handleFileChange}
             disabled={isLoading}
           />
-          {isLoading && (
-            <span className="flex justify-center text-blue-600 font-semibold mt-2">Cargando...</span>
-          )}
+
         </div>
       </div>
 
