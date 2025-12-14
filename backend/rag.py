@@ -1,14 +1,30 @@
 import os
+from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 
+load_dotenv()
+
+# =====================
+# GLOBAL STATE (ephemeral)
+# =====================
 vectorstores = {}
 retrievers = {}
 document_sources = {}
 
+_llm = None
+_embeddings = None
 
+# =====================
+# LLM + EMBEDDINGS (singleton)
+# =====================
 def get_llm_and_embeddings():
+    global _llm, _embeddings
+
+    if _llm and _embeddings:
+        return _llm, _embeddings
+
     from langchain_google_genai import (
         GoogleGenerativeAIEmbeddings,
         ChatGoogleGenerativeAI
@@ -21,21 +37,22 @@ def get_llm_and_embeddings():
 
     genai.configure(api_key=API_KEY)
 
-    embeddings = GoogleGenerativeAIEmbeddings(
+    _embeddings = GoogleGenerativeAIEmbeddings(
         model="models/text-embedding-004",
         google_api_key=API_KEY
     )
 
-    llm = ChatGoogleGenerativeAI(
+    _llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         google_api_key=API_KEY,
         temperature=0.2
     )
 
-    return llm, embeddings
+    return _llm, _embeddings
 
-
-# ---------- INGEST ----------
+# =====================
+# INGEST
+# =====================
 def ingest_file(file_path: str):
     _, embeddings = get_llm_and_embeddings()
 
@@ -43,9 +60,7 @@ def ingest_file(file_path: str):
     docs = loader.load()
 
     if not docs or all(not d.page_content.strip() for d in docs):
-        raise ValueError(
-            "El PDF no contiene texto legible (posible PDF escaneado)"
-        )
+        raise ValueError("El PDF no contiene texto legible")
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=320,
@@ -54,10 +69,9 @@ def ingest_file(file_path: str):
     chunks = splitter.split_documents(docs)
 
     if not chunks:
-        raise ValueError("No se pudo dividir el contenido del PDF")
+        raise ValueError("No se pudo dividir el PDF")
 
     doc_id = os.path.basename(file_path)
-    document_sources[doc_id] = {"chunks": len(chunks)}
 
     for c in chunks:
         c.metadata["source"] = doc_id
@@ -67,11 +81,18 @@ def ingest_file(file_path: str):
 
     vectorstores[doc_id] = vectorstore
     retrievers[doc_id] = retriever
+    document_sources[doc_id] = {
+        "chunks": len(chunks)
+    }
 
-    return {"doc": doc_id, "chunks": len(chunks)}
+    return {
+        "doc": doc_id,
+        "chunks": len(chunks)
+    }
 
-
-# ---------- QUERY ----------
+# =====================
+# QUERY
+# =====================
 def query_answer(query: str, documentId: str):
     llm, _ = get_llm_and_embeddings()
 
@@ -83,7 +104,10 @@ def query_answer(query: str, documentId: str):
         }
 
     docs = retriever.invoke(query)
-    context = "\n\n".join(d.page_content for d in docs)
+
+    context = "\n\n".join(
+        d.page_content for d in docs if d.page_content
+    )
 
     prompt = f"""
 Respondé usando solo el siguiente contexto.
@@ -93,7 +117,7 @@ Contexto:
 
 Pregunta:
 {query}
-"""
+""".strip()
 
     result = llm.invoke(prompt)
 
@@ -102,10 +126,15 @@ Pregunta:
         "sources": [documentId]
     }
 
-
-# ---------- CLEAR ----------
+# =====================
+# CLEAR
+# =====================
 def clear_session():
     vectorstores.clear()
     retrievers.clear()
     document_sources.clear()
-    return {"message": "Vector store limpiado"}
+
+    return {
+        "message": "Vector store limpiado",
+        "storage": "ephemeral"
+    }
