@@ -23,6 +23,7 @@ export default function ChatBot() {
   } = useRAGChat();
 
   const [docs, setDocs] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function ChatBot() {
   const handleDeleteDocument = async (docId) => {
     const ok = window.confirm("¿Confirmas eliminar este documento? Esta acción no se puede deshacer.");
     if (!ok) return;
+    setDeletingId(docId);
     try {
       await ragService.deleteDocument(docId);
       const docList = await ragService.getDocumentList();
@@ -78,6 +80,9 @@ export default function ChatBot() {
       console.error("Error eliminando documento:", err);
       window.alert(err?.message || "Error al eliminar el documento");
     }
+    finally {
+      setDeletingId(null);
+    }
   };
 
   // UX: bloquea input al enviar, limpia after response
@@ -95,6 +100,7 @@ export default function ChatBot() {
         onSelect={handleDocumentSelect}
         onUpload={handleUploadDocument}
         onDelete={handleDeleteDocument}
+        deletingId={deletingId}
       />
       <main className="relative flex-1 flex flex-col z-0">
         {/* Subheader */}

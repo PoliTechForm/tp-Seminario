@@ -6,7 +6,7 @@ import { FiTrash2 } from "react-icons/fi";
 
 
 
-export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDelete }) {
+export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDelete, deletingId }) {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -122,11 +122,19 @@ export default function Sidebar({ docs, selectedDocId, onSelect, onUpload, onDel
             </span>
             <button
               type="button"
-              className="ml-auto text-red-500 hover:text-red-700 p-1 rounded"
-              title="Eliminar documento"
+              className={`ml-auto p-1 rounded ${deletingId === doc.id ? 'text-gray-400' : 'text-red-500 hover:text-red-700'}`}
+              title={deletingId === doc.id ? 'Eliminando...' : 'Eliminar documento'}
               onClick={() => onDelete && onDelete(doc.id)}
+              disabled={deletingId === doc.id}
             >
-              <FiTrash2 className="text-lg" />
+              {deletingId === doc.id ? (
+                <svg className="animate-spin h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+              ) : (
+                <FiTrash2 className="text-lg" />
+              )}
             </button>
           </li>
         ))}
